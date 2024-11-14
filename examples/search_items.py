@@ -1,4 +1,4 @@
-from zotero_local_api import ZoteroLocal
+from zoteroapi import ZoteroLocal
 from typing import Dict, List
 from pprint import pprint
 

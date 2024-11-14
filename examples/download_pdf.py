@@ -1,4 +1,4 @@
-from zotero_local_api import ZoteroLocal
+from zoteroapi import ZoteroLocal
 from pathlib import Path
 from typing import Optional, Dict
 

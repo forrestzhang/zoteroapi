@@ -1,5 +1,5 @@
 import pytest
-from zotero_local_api import ZoteroLocal, ZoteroLocalError
+from zoteroapi import ZoteroLocal, ZoteroLocalError
 
 def test_client_initialization():
     client = ZoteroLocal()

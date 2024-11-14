@@ -1,4 +1,4 @@
-from zotero_local_api import ZoteroLocal, ZoteroLocalError
+from zoteroapi import ZoteroLocal, ZoteroLocalError
 from typing import Dict, List
 from pprint import pprint
 import os

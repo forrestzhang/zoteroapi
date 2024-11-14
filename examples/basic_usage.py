@@ -1,4 +1,4 @@
-from zotero_local_api.client import ZoteroLocal, ZoteroLocalError
+from zoteroapi.client import ZoteroLocal, ZoteroLocalError
 
 def main():
     # Initialize client
