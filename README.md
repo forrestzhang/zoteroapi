@@ -1,7 +1,11 @@
 # Zotero Local API
 
-这是一个用于访问本地Zotero服务器API的Python客户端库。
+This is a Python client library for accessing the local Zotero server API.
 
-## 安装
+## Installation
 
-pip install zotero-local
+pip install zoteroapi
+
+## Zotero Local Server Configuration
+
+![Zotero settings](./pic/zotero_settings.png)

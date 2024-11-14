@@ -5,7 +5,7 @@ def main():
     zot = ZoteroLocal()
     
     try:
-        print("=== 最近的条目 ===")
+        print("=== Recent Items ===")
         # Get top-level items with limit
         items = zot.get_items_top(limit=10)
         
@@ -17,9 +17,9 @@ def main():
             print("No items found or invalid response format")
 
     except ZoteroLocalError as e:
-        print(f"错误: API请求失败: {str(e)}")
+        print(f"Error: API request failed: {str(e)}")
     except Exception as e:
-        print(f"未知错误: {str(e)}")
+        print(f"Unknown error: {str(e)}")
 
 if __name__ == "__main__":
     main() 
