@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "zotero-local-api"
+name = "zoteroapi"
 version = "0.1.0"
 description = "用于访问本地Zotero服务器API的Python客户端库"
 readme = "README.md"
