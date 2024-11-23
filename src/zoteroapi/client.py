@@ -425,3 +425,55 @@ class ZoteroLocal:
             
         except Exception as e:
             raise ZoteroLocalError(f"Failed to get PMID: {str(e)}")
+
+    def search_by_doi(self, doi: str) -> List[Dict]:
+        """Search items by DOI
+        
+        Args:
+            doi: The DOI to search for
+            
+        Returns:
+            List[Dict]: List of matching items
+            
+        Raises:
+            ZoteroLocalError: If the API request fails
+        """
+        try:
+            # Get all items and filter by DOI
+            items = self.get_items()
+            matching_items = [
+                item for item in items 
+                if item.get('data', {}).get('DOI', '').lower() == doi.lower()
+            ]
+            return matching_items
+        except Exception as e:
+            raise ZoteroLocalError(f"Failed to search by DOI: {str(e)}")
+
+    def search_by_pmid(self, pmid: str) -> List[Dict]:
+        """Search items by PMID
+        
+        Args:
+            pmid: The PMID to search for
+            
+        Returns:
+            List[Dict]: List of matching items
+            
+        Raises:
+            ZoteroLocalError: If the API request fails
+        """
+        try:
+            # Get all items and filter by PMID in extra field
+            items = self.get_items()
+            matching_items = []
+            
+            for item in items:
+                extra = item.get('data', {}).get('extra', '')
+                if extra:
+                    for line in extra.split('\n'):
+                        if line.startswith('PMID:') and line.split(':')[1].strip() == pmid:
+                            matching_items.append(item)
+                            break
+                            
+            return matching_items
+        except Exception as e:
+            raise ZoteroLocalError(f"Failed to search by PMID: {str(e)}")
