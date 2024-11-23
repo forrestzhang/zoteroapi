@@ -396,3 +396,32 @@ class ZoteroLocal:
             
         except Exception as e:
             raise ZoteroLocalError(f"Failed to copy file: {str(e)}")
+
+    def get_pmid(self, item_key: str) -> str:
+        """Get PMID for a given item.
+        
+        Args:
+            item_key: The Zotero item key
+            
+        Returns:
+            str: The PMID if found, empty string if not found
+            
+        Raises:
+            ZoteroLocalError: If the API request fails
+        """
+        try:
+            item = self.get_item(item_key)
+            if not item:
+                return ""
+            
+            # Try to find PMID in extra field
+            extra = item.get('data', {}).get('extra', '')
+            if extra:
+                for line in extra.split('\n'):
+                    if line.startswith('PMID:'):
+                        return line.split(':')[1].strip()
+                    
+            return ""
+            
+        except Exception as e:
+            raise ZoteroLocalError(f"Failed to get PMID: {str(e)}")
