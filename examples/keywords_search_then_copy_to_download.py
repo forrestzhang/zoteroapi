@@ -5,7 +5,7 @@ import os
 
 client = ZoteroLocal()
 
-term = "uORF"
+term = "oligo-FISH"
 search_items_results = client.search_items(term)
 
 item_keys = [item.get('key') for item in search_items_results]

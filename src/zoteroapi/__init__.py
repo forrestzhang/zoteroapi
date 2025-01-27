@@ -16,7 +16,8 @@ from .exceptions import (
     ConnectionError,
     AuthenticationError,
     NotFoundError,
-    APIError
+    APIError,
+    ResourceNotFound
 )
 
 __version__ = "0.1.0"
@@ -26,5 +27,6 @@ __all__ = [
     "ConnectionError", 
     "AuthenticationError",
     "NotFoundError",
-    "APIError"
+    "APIError",
+    "ResourceNotFound"
 ] 

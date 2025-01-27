@@ -81,6 +81,6 @@ def copy_collection_pdfs(collection_name: str, download_dir: str = None) -> None
         print(f"Failed to process collection: {e}")
 
 if __name__ == "__main__":
-    COLLECTION_NAME = "uORF"  # Replace with your collection name
+    COLLECTION_NAME = "Oligo-FISH"  # Replace with your collection name
     DOWNLOAD_DIR = "../downloads"  # Replace with your desired download path
     copy_collection_pdfs(COLLECTION_NAME, DOWNLOAD_DIR)

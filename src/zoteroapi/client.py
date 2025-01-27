@@ -12,49 +12,27 @@ import shutil
 from urllib.parse import unquote
 from pathlib import Path
 import platform
+from .base_client import BaseZoteroClient
+from .mixins.search import SearchMixin
+from .mixins.files import FilesMixin
 
-class ZoteroLocal:
-    """Zotero本地API客户端"""
+class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin):
+    """Zotero local API client"""
     
-    def __init__(self, base_url: str = "http://localhost:23119/api/users/000000/"):
-        """初始化Zotero本地API客户端"""
-        self.base_url = base_url.rstrip('/')
-        self._session = requests.Session()
-        self._cache = {}
-        
-    def _make_request(self, 
-                     method: str, 
-                     endpoint: str, 
-                     params: Optional[Dict] = None, 
-                     data: Optional[Dict] = None,
-                     headers: Optional[Dict] = None,
-                     files: Optional[Dict] = None) -> requests.Response:
-        """发送HTTP请求到Zotero API"""
-        url = f"{self.base_url}{endpoint}"
-        
-        params = params or {}
-        if 'format' not in params:
-            params['format'] = 'json'
-            
-        headers = headers or {}
-        
-        try:
-            response = self._session.request(
-                method=method,
-                url=url,
-                params=params,
-                json=data,
-                headers=headers,
-                files=files
-            )
-            response.raise_for_status()
-            return response
-        except requests.RequestException as e:
-            raise ZoteroLocalError(f"API请求失败: {str(e)}")
-
     def get_item(self, item_key: str) -> Dict:
-        """获取单个条目"""
+        """Get a single item"""
         response = self._make_request("GET", f"/items/{item_key}")
+        return response.json()
+        
+    def get_items(self, limit: Optional[int] = None) -> List[Dict]:
+        """Get all items"""
+        params = {"limit": limit} if limit else None
+        response = self._make_request("GET", "/items", params=params)
+        return response.json()
+        
+    def get_collections(self) -> List[Dict]:
+        """Get all collections"""
+        response = self._make_request("GET", "/collections")
         return response.json()
 
     def get_item_file(self, item_key: str) -> BinaryIO:
@@ -169,20 +147,6 @@ class ZoteroLocal:
                 md5.update(chunk)
         return md5.hexdigest()
 
-    def get_items(self, limit: Optional[int] = None) -> List[Dict]:
-        """
-        获取所有条目
-
-        Args:
-            limit: 限制返回的条目数量
-
-        Returns:
-            条目列表
-        """
-        params = {"limit": limit} if limit else None
-        response = self._make_request("GET", "/items", params=params)
-        return response.json()
-
     def get_items_top(self, limit: int = 10) -> List[Dict]:
         """
         获取顶层条目
@@ -195,16 +159,6 @@ class ZoteroLocal:
         """
         params = {"limit": limit}
         response = self._make_request("GET", "/items/top", params=params)
-        return response.json()
-
-    def get_collections(self) -> List[Dict]:
-        """
-        获取所有文献集
-
-        Returns:
-            文献集列表
-        """
-        response = self._make_request("GET", "/collections")
         return response.json()
 
     def get_collection(self, collection_key: str) -> Dict:
@@ -243,20 +197,6 @@ class ZoteroLocal:
         response = self._make_request("GET", "/tags")
         return response.json()
 
-    def search_items(self, query: str) -> List[Dict]:
-        """
-        搜索条目
-
-        Args:
-            query: 搜索关键词
-
-        Returns:
-            匹配的条目列表
-        """
-        params = {"q": query}
-        response = self._make_request("GET", "/items", params=params)
-        return response.json()
-
     def get_item_by_key(self, item_key: str) -> Dict:
         """
         通过key获取单个条目
@@ -270,42 +210,6 @@ class ZoteroLocal:
         response = self._make_request("GET", f"/items/{item_key}")
         return response.json()
 
-    def _request(
-        self, 
-        method: str,
-        path: str,
-        params: Optional[Dict] = None,
-        data: Optional[Dict] = None,
-        raw_response: bool = False,
-        **kwargs
-    ) -> Any:
-        """Make HTTP request with error handling"""
-        url = self._build_url(path)
-        
-        try:
-            response = self._session.request(
-                method=method,
-                url=url,
-                params=params,
-                json=data,
-                **kwargs
-            )
-            response.raise_for_status()
-            
-            # Return raw response if requested
-            if raw_response:
-                return response
-            
-            return response.json() if response.content else None
-            
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
-                raise ResourceNotFound(f"Resource not found: {url}")
-            raise APIError(f"Request failed: {str(e)}")
-            
-        except requests.exceptions.RequestException as e:
-            raise APIError(f"Request failed: {str(e)}")
-        
     def get_item_attachment_href(self, item_key: str) -> str:
         """
         获取条目附件的直接下载链接
@@ -358,29 +262,34 @@ class ZoteroLocal:
         except (KeyError, TypeError) as e:
             raise ZoteroLocalError(f"解析附件信息失败: {str(e)}")
         
-    def _normalize_path(self, file_uri: str) -> str:
-        """
-        Normalize file URI to system-specific path
+    def get_pmid(self, item_key: str) -> str:
+        """Get PMID for a given item.
         
         Args:
-            file_uri: File URI (e.g., file:///Users/username/path/to/file.pdf)
+            item_key: The Zotero item key
             
         Returns:
-            Normalized system path
+            str: The PMID if found, empty string if not found
+            
+        Raises:
+            ZoteroLocalError: If the API request fails
         """
-        # Remove 'file://' prefix and decode URL encoding
-        if platform.system() == 'Windows':
-            # Windows: Remove leading slash
-            path = file_uri.replace('file:///', '')
-        else:
-            # macOS/Linux: Keep leading slash
-            path = file_uri.replace('file://', '')
-        
-        # URL decode the path
-        path = unquote(path)
-        
-        # Convert to Path object for proper handling
-        return str(Path(path))
+        try:
+            item = self.get_item(item_key)
+            if not item:
+                return ""
+            
+            # Try to find PMID in extra field
+            extra = item.get('data', {}).get('extra', '')
+            if extra:
+                for line in extra.split('\n'):
+                    if line.startswith('PMID:'):
+                        return line.split(':')[1].strip()
+                    
+            return ""
+            
+        except Exception as e:
+            raise ZoteroLocalError(f"Failed to get PMID: {str(e)}")
 
     def copy_attachment_to_downloads(self, file_uri: str, download_dir: str = None) -> str:
         """
@@ -420,84 +329,3 @@ class ZoteroLocal:
             
         except Exception as e:
             raise ZoteroLocalError(f"Failed to copy file: {str(e)}")
-
-    def get_pmid(self, item_key: str) -> str:
-        """Get PMID for a given item.
-        
-        Args:
-            item_key: The Zotero item key
-            
-        Returns:
-            str: The PMID if found, empty string if not found
-            
-        Raises:
-            ZoteroLocalError: If the API request fails
-        """
-        try:
-            item = self.get_item(item_key)
-            if not item:
-                return ""
-            
-            # Try to find PMID in extra field
-            extra = item.get('data', {}).get('extra', '')
-            if extra:
-                for line in extra.split('\n'):
-                    if line.startswith('PMID:'):
-                        return line.split(':')[1].strip()
-                    
-            return ""
-            
-        except Exception as e:
-            raise ZoteroLocalError(f"Failed to get PMID: {str(e)}")
-
-    def search_by_doi(self, doi: str) -> List[Dict]:
-        """Search items by DOI
-        
-        Args:
-            doi: The DOI to search for
-            
-        Returns:
-            List[Dict]: List of matching items
-            
-        Raises:
-            ZoteroLocalError: If the API request fails
-        """
-        try:
-            # Get all items and filter by DOI
-            items = self.get_items()
-            matching_items = [
-                item for item in items 
-                if item.get('data', {}).get('DOI', '').lower() == doi.lower()
-            ]
-            return matching_items
-        except Exception as e:
-            raise ZoteroLocalError(f"Failed to search by DOI: {str(e)}")
-
-    def search_by_pmid(self, pmid: str) -> List[Dict]:
-        """Search items by PMID
-        
-        Args:
-            pmid: The PMID to search for
-            
-        Returns:
-            List[Dict]: List of matching items
-            
-        Raises:
-            ZoteroLocalError: If the API request fails
-        """
-        try:
-            # Get all items and filter by PMID in extra field
-            items = self.get_items()
-            matching_items = []
-            
-            for item in items:
-                extra = item.get('data', {}).get('extra', '')
-                if extra:
-                    for line in extra.split('\n'):
-                        if line.startswith('PMID:') and line.split(':')[1].strip() == pmid:
-                            matching_items.append(item)
-                            break
-                            
-            return matching_items
-        except Exception as e:
-            raise ZoteroLocalError(f"Failed to search by PMID: {str(e)}")
