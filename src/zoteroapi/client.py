@@ -11,6 +11,7 @@ import os
 import shutil
 from urllib.parse import unquote
 from pathlib import Path
+import platform
 
 class ZoteroLocal:
     """Zotero本地API客户端"""
@@ -357,6 +358,29 @@ class ZoteroLocal:
         except (KeyError, TypeError) as e:
             raise ZoteroLocalError(f"解析附件信息失败: {str(e)}")
         
+    def _normalize_path(self, file_uri: str) -> str:
+        """
+        Normalize file URI to system-specific path
+        
+        Args:
+            file_uri: File URI (e.g., file:///Users/username/path/to/file.pdf)
+            
+        Returns:
+            Normalized system path
+        """
+        # Remove 'file://' prefix and decode URL encoding
+        if platform.system() == 'Windows':
+            # Windows: Remove leading slash
+            path = file_uri.replace('file:///', '')
+        else:
+            # macOS/Linux: Keep leading slash
+            path = file_uri.replace('file://', '')
+        
+        # URL decode the path
+        path = unquote(path)
+        
+        # Convert to Path object for proper handling
+        return str(Path(path))
 
     def copy_attachment_to_downloads(self, file_uri: str, download_dir: str = None) -> str:
         """
@@ -373,8 +397,8 @@ class ZoteroLocal:
             ZoteroLocalError: If file copying fails
         """
         try:
-            # Remove 'file:///' prefix and decode URL encoding
-            file_path = unquote(file_uri.replace('file:///', ''))
+            # Normalize the file path
+            file_path = self._normalize_path(file_uri)
             
             # Get file name from path
             file_name = os.path.basename(file_path)
