@@ -108,18 +108,32 @@ class SearchMixin:
             raise ZoteroLocalError(f"Failed to search by PMID: {str(e)}")
 
     def search_by_title(self, title: str, exact_match: bool = False) -> List[Dict]:
-        """
-        Search items by title
-        
+        """通过标题搜索文献。
+
+        根据文献标题进行搜索，支持精确匹配和模糊匹配。
+        搜索不区分大小写。
+
         Args:
-            title: The title to search for
-            exact_match: If True, only return exact matches. If False, return partial matches.
-            
+            title: 要搜索的标题文本
+            exact_match: 是否精确匹配。True 表示只返回完全匹配的结果，
+                        False 表示包含关键词即可（默认）
+
         Returns:
-            List of matching items
-            
+            匹配的文献条目列表
+
         Raises:
-            ZoteroLocalError: If the search fails
+            ZoteroLocalError: 当搜索失败时抛出
+
+        Examples:
+            >>> client = ZoteroLocal()
+            >>> # 模糊搜索标题包含 "深度学习" 的文献
+            >>> results = client.search_by_title("深度学习")
+            >>> print(f"找到 {len(results)} 篇相关文献")
+
+            >>> # 精确搜索标题为 "机器学习基础" 的文献
+            >>> results = client.search_by_title("机器学习基础", exact_match=True)
+            >>> if results:
+            ...     print(f"找到完全匹配的文献: {results[0]['data']['title']}")
         """
         try:
             # Get all items
