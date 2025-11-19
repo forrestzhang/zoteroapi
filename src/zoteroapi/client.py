@@ -15,8 +15,9 @@ import platform
 from .base_client import BaseZoteroClient
 from .mixins.search import SearchMixin
 from .mixins.files import FilesMixin
+from .mixins.notes import NotesMixin
 
-class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin):
+class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin, NotesMixin):
     """Zotero local API client"""
     
     def get_item(self, item_key: str) -> Dict:
@@ -67,7 +68,7 @@ class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin):
             # 直接从API获取文件内容
             response = self._request(
                 method="GET",
-                path=f"items/{item_key}/file",
+                path=f"/items/{item_key}/file",
                 params={"format": "raw"},  # 使用raw格式获取文件内容
                 raw_response=True  # 获取原始响应而不是JSON
             )

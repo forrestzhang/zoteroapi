@@ -17,7 +17,16 @@ classifiers = [
 dependencies = [
     "requests>=2.25.0",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "requests-mock>=1.9.0",
+    "pytest-xdist>=3.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/zotero-local-api" 
