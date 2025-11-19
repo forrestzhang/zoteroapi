@@ -18,21 +18,123 @@ from .mixins.files import FilesMixin
 from .mixins.notes import NotesMixin
 
 class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin, NotesMixin):
-    """Zotero local API client"""
+    """Zotero 本地 API 客户端。
+    
+    此类是与 Zotero 本地服务器交互的主要入口点，整合了文献管理、
+    搜索、笔记和文件操作等功能。通过继承 BaseZoteroClient 和多个
+    Mixin 类，提供了完整的 Zotero API 功能。
+    
+    Attributes:
+        base_url: Zotero 本地服务器的基础 URL
+        _session: HTTP 会话对象，用于复用连接
+        _cache: 内部缓存字典
+        
+    Examples:
+        基础用法：
+        
+        >>> from zoteroapi import ZoteroLocal
+        >>> client = ZoteroLocal()
+        >>> items = client.get_items_top(limit=10)
+        >>> for item in items:
+        ...     print(item['data']['title'])
+        
+        搜索文献：
+        
+        >>> results = client.search_items("machine learning")
+        >>> print(f"找到 {len(results)} 篇文献")
+        
+        添加笔记：
+        
+        >>> note = client.add_item_note(
+        ...     item_key="ABC123",
+        ...     note_text="这是我的阅读笔记"
+        ... )
+    """
     
     def get_item(self, item_key: str) -> Dict:
-        """Get a single item"""
+        """获取单个文献条目。
+        
+        通过条目的唯一标识符获取其完整信息，包括元数据、标签、
+        链接等所有相关数据。
+        
+        Args:
+            item_key: 条目的唯一标识符（key）
+            
+        Returns:
+            包含完整条目信息的字典，包含以下主要字段：
+            - key: 条目唯一标识
+            - version: 版本号
+            - data: 核心数据（标题、作者、日期等）
+            - meta: 元数据
+            - links: 相关链接
+            
+        Raises:
+            ZoteroLocalError: 当 API 请求失败时抛出
+            ResourceNotFound: 当条目不存在时抛出
+            
+        Examples:
+            >>> client = ZoteroLocal()
+            >>> item = client.get_item("ABC123XYZ")
+            >>> print(item['data']['title'])
+            '深度学习研究'
+        """
         response = self._make_request("GET", f"/items/{item_key}")
         return response.json()
         
     def get_items(self, limit: Optional[int] = None) -> List[Dict]:
-        """Get all items"""
+        """获取所有文献条目。
+        
+        获取文献库中的所有条目，包括顶层条目和子条目（如笔记、附件等）。
+        可以通过 limit 参数控制返回的数量。
+        
+        Args:
+            limit: 限制返回的条目数量。如果为 None，则返回所有条目。
+                  对于大型文献库，建议设置合理的 limit 值。
+            
+        Returns:
+            条目列表，每个元素为包含完整条目信息的字典
+            
+        Raises:
+            ZoteroLocalError: 当 API 请求失败时抛出
+            
+        Warning:
+            获取所有条目可能需要较长时间，建议使用 limit 参数或
+            使用 get_items_top() 只获取顶层条目。
+            
+        Examples:
+            >>> client = ZoteroLocal()
+            >>> # 获取前 50 个条目
+            >>> items = client.get_items(limit=50)
+            >>> print(f"获取了 {len(items)} 个条目")
+        """
         params = {"limit": limit} if limit else None
         response = self._make_request("GET", "/items", params=params)
         return response.json()
         
     def get_collections(self) -> List[Dict]:
-        """Get all collections"""
+        """获取所有文献集。
+        
+        获取用户文献库中的所有文献集（Collections），包括顶层文献集
+        和子文献集。
+        
+        Returns:
+            文献集列表，每个元素包含文献集的信息：
+            - key: 文献集唯一标识
+            - data.name: 文献集名称
+            - data.parentCollection: 父文献集 key（如果是子文献集）
+            - data.numItems: 包含的条目数量
+            
+        Raises:
+            ZoteroLocalError: 当 API 请求失败时抛出
+            
+        Examples:
+            >>> client = ZoteroLocal()
+            >>> collections = client.get_collections()
+            >>> for coll in collections:
+            ...     name = coll['data']['name']
+            ...     num = coll['data'].get('numItems', 0)
+            ...     print(f"{name}: {num} 篇")
+        """
         response = self._make_request("GET", "/collections")
         return response.json()
 

@@ -2,16 +2,64 @@ from typing import Dict, List
 from ..exceptions import ZoteroLocalError
 
 class SearchMixin:
-    """Mixin class for search-related functionality"""
+    """搜索功能 Mixin 类。
+    
+    提供各种搜索方法，包括通用关键词搜索、DOI 搜索、PMID 搜索
+    和标题搜索。该类通过 Mixin 模式混入到 ZoteroLocal 中。
+    
+    Note:
+        此类不直接使用，而是通过 ZoteroLocal 类使用。
+    """
     
     def search_items(self, query: str) -> List[Dict]:
-        """Search items by query string"""
+        """通过关键词搜索文献条目。
+        
+        在文献库中搜索包含指定关键词的文献。搜索范围包括标题、
+        摘要、标签等字段。
+        
+        Args:
+            query: 搜索关键词字符串
+            
+        Returns:
+            匹配的文献条目列表，每个元素为包含完整条目信息的字典
+            
+        Raises:
+            ZoteroLocalError: 当 API 请求失败时抛出
+            
+        Examples:
+            >>> client = ZoteroLocal()
+            >>> results = client.search_items("machine learning")
+            >>> print(f"找到 {len(results)} 篇相关文献")
+            >>> for item in results[:5]:
+            ...     title = item['data']['title']
+            ...     print(f"  - {title}")
+        """
         params = {"q": query}
         response = self._make_request("GET", "/items", params=params)
         return response.json()
         
     def search_by_doi(self, doi: str) -> List[Dict]:
-        """Search items by DOI"""
+        """通过 DOI 搜索文献。
+        
+        使用 DOI（数字对象标识符）精确查找文献。DOI 匹配不区分大小写。
+        
+        Args:
+            doi: DOI 标识符，如 '10.1038/nature12373'
+            
+        Returns:
+            匹配的文献列表（通常只有 0 个或 1 个结果）
+            
+        Raises:
+            ZoteroLocalError: 当搜索失败时抛出
+            
+        Examples:
+            >>> client = ZoteroLocal()
+            >>> results = client.search_by_doi("10.1038/nature12373")
+            >>> if results:
+            ...     print(f"找到文献: {results[0]['data']['title']}")
+            ... else:
+            ...     print("未找到该 DOI 对应的文献")
+        """
         try:
             items = self.get_items()
             matching_items = [
@@ -23,7 +71,26 @@ class SearchMixin:
             raise ZoteroLocalError(f"Failed to search by DOI: {str(e)}")
             
     def search_by_pmid(self, pmid: str) -> List[Dict]:
-        """Search items by PMID"""
+        """通过 PMID 搜索文献。
+        
+        使用 PubMed ID 搜索医学文献。PMID 通常存储在文献的 'extra' 
+        字段中，格式为 'PMID: 12345678'。
+        
+        Args:
+            pmid: PubMed ID 字符串
+            
+        Returns:
+            匹配的文献列表
+            
+        Raises:
+            ZoteroLocalError: 当搜索失败时抛出
+            
+        Examples:
+            >>> client = ZoteroLocal()
+            >>> results = client.search_by_pmid("12345678")
+            >>> for item in results:
+            ...     print(item['data']['title'])
+        """
         try:
             items = self.get_items()
             matching_items = []

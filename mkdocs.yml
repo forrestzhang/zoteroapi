@@ -1,0 +1,142 @@
+site_name: ZoteroAPI 文档
+site_description: Python 客户端库，用于访问本地 Zotero 服务器 API
+site_author: Tao Zhang
+repo_url: https://github.com/yourusername/zoteroapi
+repo_name: zoteroapi
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换到深色模式
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换到浅色模式
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - 首页: index.md
+  - 快速开始:
+      - 安装: getting-started/installation.md
+      - Zotero 配置: getting-started/configuration.md
+      - 快速上手: getting-started/quick-start.md
+  - 用户指南:
+      - 客户端初始化: user-guide/client-initialization.md
+      - 文献条目管理: user-guide/items-management.md
+      - 文献集操作: user-guide/collections.md
+      - 搜索功能: user-guide/search.md
+      - 笔记管理: user-guide/notes.md
+      - 文件操作: user-guide/files.md
+      - 标签管理: user-guide/tags.md
+  - 示例代码:
+      - 基础用法: examples/basic-usage.md
+      - 搜索示例: examples/search-examples.md
+      - 文件操作: examples/file-operations.md
+      - 笔记操作: examples/note-operations.md
+      - 高级工作流: examples/advanced-workflows.md
+  - API 参考:
+      - 概览: api-reference/index.md
+      - ZoteroLocal: api-reference/client.md
+      - BaseZoteroClient: api-reference/base-client.md
+      - Mixins:
+          - SearchMixin: api-reference/mixins/search.md
+          - FilesMixin: api-reference/mixins/files.md
+          - NotesMixin: api-reference/mixins/notes.md
+      - 异常类: api-reference/exceptions.md
+  - 开发指南:
+      - 贡献指南: development/contributing.md
+      - 测试指南: development/testing.md
+      - 架构设计: development/architecture.md
+      - 更新日志: development/changelog.md
+  - 常见问题: faq.md
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
+            show_if_no_docstring: false
+            members_order: source
+            heading_level: 2
+            merge_init_into_class: true
+            show_signature_annotations: true
+            separate_signature: true
+  - git-revision-date-localized:
+      type: datetime
+      timezone: Asia/Shanghai
+      locale: zh
+      enable_creation_date: true
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: 目录
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yourusername/zoteroapi
+  version:
+    provider: mike
+
+extra_css:
+  - stylesheets/extra.css

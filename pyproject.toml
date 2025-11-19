@@ -27,6 +27,14 @@ test = [
     "requests-mock>=1.9.0",
     "pytest-xdist>=3.0.0",
 ]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.4.0",
+    "mkdocstrings[python]>=0.24.0",
+    "pymdown-extensions>=10.0",
+    "mkdocs-git-revision-date-localized-plugin>=1.2.0",
+    "mkdocs-minify-plugin>=0.7.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/zotero-local-api" 

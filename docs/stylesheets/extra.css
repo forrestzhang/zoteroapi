@@ -1,0 +1,25 @@
+/* 代码块圆角 */
+.highlight {
+    border-radius: 0.3em;
+}
+
+/* 表格样式增强 */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* 提示框图标优化 */
+.admonition {
+    border-left: 4px solid;
+}
+
+/* 代码块内边距优化 */
+.highlight pre {
+    padding: 1em;
+}
+
+/* 导航卡片样式 */
+.md-typeset .grid {
+    margin-top: 1.5em;
+}
