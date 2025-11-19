@@ -1,6 +1,5 @@
 from zoteroapi import ZoteroLocal
-from typing import Dict, List
-from pprint import pprint
+from typing import Dict
 
 def print_item_info(item: Dict) -> None:
     """Print basic information of the item"""

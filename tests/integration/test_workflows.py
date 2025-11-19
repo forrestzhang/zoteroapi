@@ -190,7 +190,6 @@ class TestWorkflows:
     def test_multi_search_workflow(self, requests_mock):
         """测试多种搜索方式组合的流程"""
         client = ZoteroLocal()
-        target_item = SAMPLE_ITEMS[0]
         
         requests_mock.get(
             f"{client.base_url}/items",

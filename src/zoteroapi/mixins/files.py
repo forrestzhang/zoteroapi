@@ -1,4 +1,4 @@
-from typing import Union, BinaryIO
+from typing import BinaryIO
 from pathlib import Path
 import os
 import shutil

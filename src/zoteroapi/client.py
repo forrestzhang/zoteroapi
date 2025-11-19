@@ -1,17 +1,11 @@
 import requests
-import json
 import os
 import zipfile
 import io
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Union, BinaryIO, Any
-from .exceptions import ZoteroLocalError, APIError, ResourceNotFound
-import os
+from typing import Dict, List, Optional, Union, BinaryIO
+from .exceptions import ZoteroLocalError
 import shutil
-from urllib.parse import unquote
-from pathlib import Path
-import platform
 from .base_client import BaseZoteroClient
 from .mixins.search import SearchMixin
 from .mixins.files import FilesMixin

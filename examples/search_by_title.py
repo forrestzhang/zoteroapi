@@ -1,6 +1,5 @@
 from zoteroapi import ZoteroLocal, ZoteroLocalError
-from typing import Dict, List
-from pprint import pprint
+from typing import Dict
 
 def print_item_info(item: Dict) -> None:
     """Print basic information about an item"""

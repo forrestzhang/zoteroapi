@@ -3,7 +3,7 @@ BaseZoteroClient 单元测试
 """
 import pytest
 import requests
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from zoteroapi.base_client import BaseZoteroClient
 from zoteroapi.exceptions import ZoteroLocalError, APIError, ResourceNotFound
 

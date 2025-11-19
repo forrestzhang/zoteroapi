@@ -1,7 +1,7 @@
 """
 Mock 数据工厂 - 提供测试用的模拟数据
 """
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 
 class MockDataFactory:

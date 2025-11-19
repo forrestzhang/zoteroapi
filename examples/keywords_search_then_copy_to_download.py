@@ -1,6 +1,4 @@
 from zoteroapi import ZoteroLocal, ZoteroLocalError
-from typing import Dict, List
-from pprint import pprint
 import os
 
 client = ZoteroLocal()

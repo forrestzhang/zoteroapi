@@ -3,7 +3,7 @@ API 集成测试
 """
 import pytest
 from zoteroapi import ZoteroLocal
-from zoteroapi.exceptions import ZoteroLocalError, APIError, ResourceNotFound
+from zoteroapi.exceptions import ZoteroLocalError
 
 
 class TestAPIIntegration:
