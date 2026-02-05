@@ -155,28 +155,48 @@ class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin, NotesMixin):
     def download_file(self, item_key: str, path: Union[str, Path]) -> None:
         """
         下载条目的附件文件到指定路径
-        
+
         Args:
-            item_key: 条目ID
+            item_key: 条目ID（应该是附件项目的key）
             path: 保存路径
         """
+        import shutil
+        from urllib.parse import unquote
+
         try:
-            # 直接从API获取文件内容
-            response = self._request(
-                method="GET",
-                path=f"/items/{item_key}/file",
-                params={"format": "raw"},  # 使用raw格式获取文件内容
-                raw_response=True  # 获取原始响应而不是JSON
-            )
-            
+            # 获取附件项目信息
+            item = self.get_item(item_key)
+
+            # 检查是否是附件类型
+            if item.get('data', {}).get('itemType') != 'attachment':
+                raise ZoteroLocalError(f"Item {item_key} is not an attachment")
+
+            # 从 enclosure 链接获取本地文件路径
+            enclosure = item.get('links', {}).get('enclosure', {})
+            file_url = enclosure.get('href', '')
+
+            if not file_url:
+                raise ZoteroLocalError(f"No file URL found for attachment {item_key}")
+
+            # 处理 file:// URL
+            if file_url.startswith('file://'):
+                # 移除 file:// 前缀并解码 URL
+                file_path = unquote(file_url[7:])
+            else:
+                file_path = unquote(file_url)
+
+            # 检查源文件是否存在
+            source_path = Path(file_path)
+            if not source_path.exists():
+                raise ZoteroLocalError(f"Source file not found: {file_path}")
+
             # 确保目标目录存在
             path = Path(path)
             path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # 写入文件
-            with open(path, 'wb') as f:
-                f.write(response.content)
-                
+
+            # 复制文件
+            shutil.copy2(source_path, path)
+
         except Exception as e:
             raise ZoteroLocalError(f"下载文件失败: {str(e)}")
 

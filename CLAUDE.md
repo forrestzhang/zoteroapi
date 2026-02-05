@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is **zoteroapi** - a Python client library for accessing the local Zotero server API. The library provides a clean interface to interact with Zotero's local server functionality for managing academic references, collections, notes, and files.
 
+**Key Characteristics:**
+- Python 3.11+ required
+- Uses hatchling build system
+- 88%+ test coverage (target: 85%)
+- Chinese documentation with MkDocs Material theme
+- Follows Zotero API v3 specification: https://www.zotero.org/support/dev/web_api/v3/basics
+
 ## Development Commands
 
 ### Testing
@@ -114,6 +121,27 @@ twine upload dist/*
 
 ## Architecture
 
+### Layered Architecture Overview
+
+The library follows a **layered architecture** with clear separation of concerns:
+
+```
+User Application Layer
+         │
+    ZoteroLocal (Main Client)
+         │
+    Mixin Functionality Layer
+    (SearchMixin | FilesMixin | NotesMixin)
+         │
+    BaseZoteroClient (Foundation)
+         │
+    HTTP Request Layer (requests.Session)
+         │
+    Zotero Local Server (localhost:23119)
+```
+
+**Key insight:** BaseZoteroClient handles all HTTP communication. ZoteroLocal inherits from it and adds mixin functionality. Mixins are independent and can be combined. When adding new features, consider whether they belong in a new mixin or in the main client.
+
 ### Core Components
 
 **BaseZoteroClient** (`src/zoteroapi/base_client.py`)
@@ -121,16 +149,19 @@ twine upload dist/*
 - Manages session handling, request/response processing, and error handling
 - Uses `requests.Session` for connection pooling
 - Default URL: `http://localhost:23119/api/users/000000/`
+- **Do not modify unless changing HTTP communication layer**
 
 **ZoteroLocal** (`src/zoteroapi/client.py`)
 - Main client class that inherits from BaseZoteroClient
 - Implements Mixin pattern to modularize functionality
 - Primary interface for end-users
+- **Add new high-level user-facing methods here**
 
 **Mixin Classes** (`src/zoteroapi/mixins/`)
 - **SearchMixin**: Search functionality (keywords, DOI, PMID, title)
 - **FilesMixin**: File operations (download, upload, attachment handling)
 - **NotesMixin**: Note management and operations
+- **Create new mixins for domain-specific functionality**
 
 **Exceptions** (`src/zoteroapi/exceptions.py`)
 - `ZoteroLocalError`: Base exception class
@@ -266,6 +297,15 @@ For debugging ZoteroLocal client with local Zotero server:
 - Use type hints throughout (checked by `mypy`)
 - Include comprehensive docstrings with Google style
 - Handle errors gracefully with appropriate exceptions
+- When working with API responses, handle JSON data appropriately and consider pagination
+- For file operations, ensure proper path handling across platforms and follow existing patterns
+
+### API Integration Guidelines
+- Follow Zotero API v3 specification for all endpoint implementations
+- Reference: https://www.zotero.org/support/dev/web_api/v3/basics
+- Handle API errors and rate limits appropriately
+- Include proper error handling for Zotero API calls
+- Test suggestions against Zotero API v3 specifications
 
 ### Documentation
 - All public methods must have docstrings
