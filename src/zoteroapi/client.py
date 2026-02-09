@@ -381,13 +381,20 @@ class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin, NotesMixin):
         
     def get_pmid(self, item_key: str) -> str:
         """Get PMID for a given item.
-        
+
+        Searches for PMID in multiple possible locations:
+        1. Direct 'PMID' field in data (most common from PubMed import)
+        2. 'extra' field with 'PMID:' prefix
+        3. 'url' field (pubmed.ncbi.nlm.nih.gov/PMID)
+        4. 'archive' field
+        5. 'notes' field
+
         Args:
             item_key: The Zotero item key
-            
+
         Returns:
             str: The PMID if found, empty string if not found
-            
+
         Raises:
             ZoteroLocalError: If the API request fails
         """
@@ -395,16 +402,54 @@ class ZoteroLocal(BaseZoteroClient, SearchMixin, FilesMixin, NotesMixin):
             item = self.get_item(item_key)
             if not item:
                 return ""
-            
-            # Try to find PMID in extra field
-            extra = item.get('data', {}).get('extra', '')
+
+            data = item.get('data', {})
+
+            # Method 1: Check direct PMID field (most common from PubMed import)
+            pmid_direct = data.get('PMID', '')
+            if pmid_direct:
+                return str(pmid_direct)
+
+            # Method 2: Try to find PMID in extra field
+            extra = data.get('extra', '')
             if extra:
                 for line in extra.split('\n'):
                     if line.startswith('PMID:'):
                         return line.split(':')[1].strip()
-                    
+
+            # Method 3: Try to find PMID in URL field
+            # Often in format: https://pubmed.ncbi.nlm.nih.gov/36434096/
+            url = data.get('url', '')
+            if url:
+                import re
+                # Match PMID in various URL formats
+                match = re.search(r'pubmed\.ncbi\.nlm\..nih\.gov/(\d+)', url)
+                if match:
+                    return match.group(1)
+
+            # Method 4: Try archive field
+            archive = data.get('archive', '')
+            if archive:
+                import re
+                match = re.search(r'(\d{8})', archive)
+                if match:
+                    return match.group(1)
+
+            # Method 5: Try notes field
+            notes = data.get('notes', [])
+            if notes:
+                for note in notes:
+                    if isinstance(note, dict):
+                        note_content = note.get('note', '')
+                    else:
+                        note_content = str(note)
+                    import re
+                    match = re.search(r'PMID[:\s]+(\d+)', note_content, re.IGNORECASE)
+                    if match:
+                        return match.group(1)
+
             return ""
-            
+
         except Exception as e:
             raise ZoteroLocalError(f"Failed to get PMID: {str(e)}")
 
