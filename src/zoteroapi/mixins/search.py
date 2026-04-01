@@ -72,19 +72,20 @@ class SearchMixin:
             
     def search_by_pmid(self, pmid: str) -> List[Dict]:
         """通过 PMID 搜索文献。
-        
-        使用 PubMed ID 搜索医学文献。PMID 通常存储在文献的 'extra' 
-        字段中，格式为 'PMID: 12345678'。
-        
+
+        使用 PubMed ID 搜索医学文献。支持两种存储格式：
+        - 新版 Zotero: 独立的 'PMID' 字段
+        - 旧版 Zotero: 'extra' 字段中格式为 'PMID: 12345678'
+
         Args:
             pmid: PubMed ID 字符串
-            
+
         Returns:
             匹配的文献列表
-            
+
         Raises:
             ZoteroLocalError: 当搜索失败时抛出
-            
+
         Examples:
             >>> client = ZoteroLocal()
             >>> results = client.search_by_pmid("12345678")
@@ -94,15 +95,24 @@ class SearchMixin:
         try:
             items = self.get_items()
             matching_items = []
-            
+
             for item in items:
+                # 首先检查独立的 PMID 字段（新版 Zotero）
+                item_pmid = item.get('data', {}).get('PMID')
+                if item_pmid and item_pmid.strip() == pmid:
+                    matching_items.append(item)
+                    continue
+
+                # 回退到 extra 字段（旧版 Zotero）
                 extra = item.get('data', {}).get('extra', '')
                 if extra:
                     for line in extra.split('\n'):
-                        if line.startswith('PMID:') and line.split(':')[1].strip() == pmid:
-                            matching_items.append(item)
+                        if line.startswith('PMID:'):
+                            extracted_pmid = line.split(':', 1)[1].strip()
+                            if extracted_pmid == pmid:
+                                matching_items.append(item)
                             break
-                            
+
             return matching_items
         except Exception as e:
             raise ZoteroLocalError(f"Failed to search by PMID: {str(e)}")
